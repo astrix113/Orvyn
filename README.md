@@ -33,17 +33,17 @@ The app is built to feel like a lightweight ChatGPT-like interface, but with ext
 
 ## ✨ Features
 
-| Feature | Description | Status |
-|---|---|---|
-| Chat with Gemini | Streams AI responses in real time | ✅ |
-| Multi-model selection | Supports multiple Gemini 2.5/3.x models | ✅ |
-| Document upload | Accepts PDF, DOCX, TXT, MD, PY, and CSV files | ✅ |
-| RAG retrieval | Searches uploaded files by semantic similarity | ✅ |
-| Web search | Uses Tavily for current information | ✅ |
-| Calculator | Performs simple math operations | ✅ |
-| Memory | Saves and recalls user facts per thread | ✅ |
-| Conversation history | Tracks previous chats and recent threads | ✅ |
-| Docker-ready | Runs in a contained Python environment | ✅ |
+| Feature               | Description                                    | Status |
+| --------------------- | ---------------------------------------------- | ------ |
+| Chat with Gemini      | Streams AI responses in real time              | ✅     |
+| Multi-model selection | Supports multiple Gemini 2.5/3.x models        | ✅     |
+| Document upload       | Accepts PDF, DOCX, TXT, MD, PY, and CSV files  | ✅     |
+| RAG retrieval         | Searches uploaded files by semantic similarity | ✅     |
+| Web search            | Uses Tavily for current information            | ✅     |
+| Calculator            | Performs simple math operations                | ✅     |
+| Memory                | Saves and recalls user facts per thread        | ✅     |
+| Conversation history  | Tracks previous chats and recent threads       | ✅     |
+| Docker-ready          | Runs in a contained Python environment         | ✅     |
 
 ---
 
@@ -78,6 +78,7 @@ FastAPI app (app.py)
 ## 🧩 Core Components
 
 ### 1) Agent orchestration
+
 Located in `agent.py`
 
 - Builds the LangGraph workflow
@@ -86,6 +87,7 @@ Located in `agent.py`
 - Uses a SQLite checkpoint database for conversation memory across steps
 
 ### 2) FastAPI backend
+
 Located in `app.py`
 
 Responsibilities:
@@ -97,6 +99,7 @@ Responsibilities:
 - Streams chat responses via `/chat/stream`
 
 ### 3) RAG pipeline
+
 Located in `rag.py`
 
 Responsibilities:
@@ -107,6 +110,7 @@ Responsibilities:
 - Stores and retrieves document context from Chroma
 
 ### 4) Tools and actions
+
 Located in `tools.py`
 
 Included tools:
@@ -118,6 +122,7 @@ Included tools:
 - `web_search` — Tavily general web search
 
 ### 5) Persistence layer
+
 Located in `database.py`
 
 Stores:
@@ -157,17 +162,17 @@ Orvyn/
 
 ## 🛠️ Tech Stack
 
-| Layer | Stack |
-|---|---|
-| Backend | Python, FastAPI, Uvicorn |
-| Agent Orchestration | LangGraph |
-| LLM Provider | Google Gemini via `langchain-google-genai` |
-| Search | Tavily |
-| RAG | ChromaDB, LangChain embeddings, recursive chunking |
-| File Parsing | PyPDF, docx2txt |
-| Storage | SQLite |
-| Frontend | Jinja2 + custom HTML/CSS/JS |
-| Containerization | Docker |
+| Layer               | Stack                                              |
+| ------------------- | -------------------------------------------------- |
+| Backend             | Python, FastAPI, Uvicorn                           |
+| Agent Orchestration | LangGraph                                          |
+| LLM Provider        | Google Gemini via `langchain-google-genai`         |
+| Search              | Tavily                                             |
+| RAG                 | ChromaDB, LangChain embeddings, recursive chunking |
+| File Parsing        | PyPDF, docx2txt                                    |
+| Storage             | SQLite                                             |
+| Frontend            | Jinja2 + custom HTML/CSS/JS                        |
+| Containerization    | Docker                                             |
 
 ---
 
@@ -183,11 +188,11 @@ GEMINI_MODEL=gemini-2.5-flash
 
 ### Required API keys
 
-| Variable | Purpose |
-|---|---|
+| Variable         | Purpose                                |
+| ---------------- | -------------------------------------- |
 | `GOOGLE_API_KEY` | Required for Gemini LLM and embeddings |
-| `TAVILY_API_KEY` | Required for live web search |
-| `GEMINI_MODEL` | Optional override for the agent model |
+| `TAVILY_API_KEY` | Required for live web search           |
+| `GEMINI_MODEL`   | Optional override for the agent model  |
 
 > ⚠️ If the keys are missing, the app will fail when the relevant operations are invoked.
 
@@ -219,13 +224,13 @@ docker run -p 8080:8080 --env-file .env orvyn
 
 ## 🌐 API Endpoints
 
-| Endpoint | Method | Purpose |
-|---|---|---|
-| `/` | GET | Serves the UI |
-| `/conversations` | GET | Lists conversation threads |
-| `/history/{thread_id}` | GET | Fetches chat history for a thread |
-| `/upload` | POST | Uploads and indexes a document |
-| `/chat/stream` | POST | Streams chat responses |
+| Endpoint               | Method | Purpose                           |
+| ---------------------- | ------ | --------------------------------- |
+| `/`                    | GET    | Serves the UI                     |
+| `/conversations`       | GET    | Lists conversation threads        |
+| `/history/{thread_id}` | GET    | Fetches chat history for a thread |
+| `/upload`              | POST   | Uploads and indexes a document    |
+| `/chat/stream`         | POST   | Streams chat responses            |
 
 ### Example upload request
 
@@ -271,14 +276,14 @@ This makes the assistant more capable than a plain RAG bot by combining retrieva
 
 ## 📦 Supported File Types
 
-| Type | Supported |
-|---|---|
-| PDF | ✅ |
-| DOCX | ✅ |
-| TXT | ✅ |
-| Markdown | ✅ |
-| Python | ✅ |
-| CSV | ✅ |
+| Type     | Supported |
+| -------- | --------- |
+| PDF      | ✅        |
+| DOCX     | ✅        |
+| TXT      | ✅        |
+| Markdown | ✅        |
+| Python   | ✅        |
+| CSV      | ✅        |
 
 Unsupported file types will be rejected with a 400 response.
 
