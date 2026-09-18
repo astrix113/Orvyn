@@ -452,7 +452,10 @@
         background: rgba(139, 124, 255, 0.08);
         color: var(--text);
         font-size: 18px;
-        transition: background 0.2s, border-color 0.2s, opacity 0.2s;
+        transition:
+          background 0.2s,
+          border-color 0.2s,
+          opacity 0.2s;
       }
 
       .attach-btn:hover {
@@ -857,7 +860,9 @@
             </form>
 
             <div class="composer-options">
-              <div class="file-badge" id="selectedFileBadge" hidden>📄 No file selected</div>
+              <div class="file-badge" id="selectedFileBadge" hidden>
+                📄 No file selected
+              </div>
 
               <select
                 class="model-select"
