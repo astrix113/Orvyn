@@ -1,5 +1,9 @@
 name: Deploy FastAPI Docker Image to EC2
 
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches:
@@ -89,8 +93,6 @@ jobs:
         run: |
           docker image prune -f
 
-
-
-
-
- 
+      - name: Verify container is running
+        run: |
+          docker ps --filter "name=agentic-chatbot" --format "table {{.Names}}\t{{.Status}}"
