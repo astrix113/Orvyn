@@ -135,8 +135,15 @@ async def upload_document(
             thread_id=thread_id
         )
 
+        save_chat_message(
+            thread_id,
+            "user",
+            f"Uploaded file: {filename}"
+        )
+
         return JSONResponse({
             "success": True,
+            "filename": filename,
             "message": f"Uploaded {result['filename']} and created {result['chunks']} chunks."
         })
 

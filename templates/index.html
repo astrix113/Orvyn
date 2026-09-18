@@ -440,6 +440,31 @@
         border-color: var(--accent);
       }
 
+      .attach-btn {
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: rgba(139, 124, 255, 0.08);
+        color: var(--text);
+        font-size: 18px;
+        transition: background 0.2s, border-color 0.2s, opacity 0.2s;
+      }
+
+      .attach-btn:hover {
+        background: rgba(139, 124, 255, 0.14);
+        border-color: var(--accent);
+      }
+
+      .attach-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
       .prompt-input {
         flex: 1;
         min-width: 0;
@@ -490,6 +515,22 @@
         align-items: center;
         gap: 12px;
         margin-top: 10px;
+      }
+
+      .file-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 10px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: rgba(139, 124, 255, 0.08);
+        color: var(--text);
+        font-size: 12px;
+        max-width: 60%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .model-select {
@@ -778,6 +819,23 @@
         <footer class="composer-wrap">
           <div class="composer-inner">
             <form class="composer" id="chatForm">
+              <input
+                type="file"
+                id="fileInput"
+                accept=".pdf,.docx,.txt,.md,.py,.csv"
+                hidden
+              />
+
+              <button
+                class="attach-btn"
+                id="attachBtn"
+                type="button"
+                aria-label="Upload document"
+                title="Upload document"
+              >
+                📎
+              </button>
+
               <textarea
                 class="prompt-input"
                 id="promptInput"
@@ -799,6 +857,8 @@
             </form>
 
             <div class="composer-options">
+              <div class="file-badge" id="selectedFileBadge" hidden>📄 No file selected</div>
+
               <select
                 class="model-select"
                 id="modelSelect"
@@ -843,6 +903,9 @@
       const promptInput = document.getElementById("promptInput");
       const sendBtn = document.getElementById("sendBtn");
       const modelSelect = document.getElementById("modelSelect");
+      const attachBtn = document.getElementById("attachBtn");
+      const fileInput = document.getElementById("fileInput");
+      const selectedFileBadge = document.getElementById("selectedFileBadge");
 
       const chatArea = document.getElementById("chatArea");
       const messagesContainer = document.getElementById("messages");
@@ -852,10 +915,7 @@
       let conversations = [];
       let activeConversationId = null;
       let isSending = false;
-
-      function createId() {
-        return crypto.randomUUID();
-      }
+      let isUploading = false;
 
       function getActiveConversation() {
         return conversations.find(
@@ -880,13 +940,35 @@
         statusText.textContent = text;
       }
 
+      function createId() {
+        if (window.crypto && typeof window.crypto.randomUUID === "function") {
+          return window.crypto.randomUUID();
+        }
+
+        return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      }
+
       function setSending(sending) {
         isSending = sending;
-        sendBtn.disabled = sending;
-        promptInput.disabled = sending;
+        sendBtn.disabled = sending || isUploading;
+        promptInput.disabled = sending || isUploading;
+        attachBtn.disabled = sending || isUploading;
 
-        updateStatus(sending ? "Thinking..." : "Ready");
+        updateStatus(
+          sending ? "Thinking..." : isUploading ? "Uploading file..." : "Ready",
+        );
         sendBtn.textContent = sending ? "…" : "↑";
+      }
+
+      function setUploading(uploading) {
+        isUploading = uploading;
+        attachBtn.disabled = uploading || isSending;
+        sendBtn.disabled = uploading || isSending;
+        promptInput.disabled = uploading || isSending;
+
+        updateStatus(
+          uploading ? "Uploading file..." : isSending ? "Thinking..." : "Ready",
+        );
       }
 
       function scrollToBottom() {
@@ -1076,6 +1158,70 @@
         promptInput.value = "";
         promptInput.style.height = "auto";
         promptInput.focus();
+      }
+
+      async function uploadSelectedFile(file) {
+        if (!file) return;
+
+        let conversation = getActiveConversation();
+        if (!conversation) {
+          newChat();
+          conversation = getActiveConversation();
+        }
+
+        if (!conversation) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("thread_id", conversation.thread_id);
+
+        const uploadMessage = {
+          role: "user",
+          content: `Uploading file: ${file.name}`,
+        };
+        conversation.messages.push(uploadMessage);
+        renderMessages();
+        renderHistory();
+
+        setUploading(true);
+        selectedFileBadge.hidden = false;
+        selectedFileBadge.textContent = `📄 ${file.name}`;
+
+        try {
+          const response = await fetch("/upload", {
+            method: "POST",
+            body: formData,
+          });
+
+          const result = await response.json();
+
+          if (!response.ok || !result.success) {
+            throw new Error(result.message || "Upload failed");
+          }
+
+          uploadMessage.content = `Uploaded file: ${result.filename || file.name}`;
+          renderMessages();
+          renderHistory();
+
+          updateStatus("File uploaded successfully");
+          selectedFileBadge.textContent = `✅ ${file.name}`;
+
+          setTimeout(() => {
+            if (selectedFileBadge.textContent.includes(file.name)) {
+              selectedFileBadge.textContent = `📄 ${file.name}`;
+            }
+          }, 1800);
+        } catch (error) {
+          console.error(error);
+          uploadMessage.content = `Upload failed: ${file.name}`;
+          renderMessages();
+          selectedFileBadge.textContent = `❌ ${file.name}`;
+          updateStatus("Upload failed");
+        } finally {
+          fileInput.value = "";
+          setUploading(false);
+          promptInput.focus();
+        }
       }
 
       /* -----------------------------
@@ -1303,6 +1449,15 @@
       sidebarOverlay.addEventListener("click", closeSidebar);
 
       newChatBtn.addEventListener("click", newChat);
+
+      attachBtn.addEventListener("click", () => fileInput.click());
+
+      fileInput.addEventListener("change", (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (file) {
+          uploadSelectedFile(file);
+        }
+      });
 
       chatForm.addEventListener("submit", (event) => {
         event.preventDefault();
